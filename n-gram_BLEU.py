@@ -1,25 +1,24 @@
 import codecs
-import codecs
 import os
 import math
 import operator
-import json
 from functools import reduce
 
+
 def fetch_data(cand, ref):
-    """ Store each reference and candidate sentences as a list """
+    """Store each reference and candidate sentences as a list"""
     references = []
-    if '.txt' in ref:
-        #reference_file = codecs.open(ref, 'r', 'utf-8')
-        reference_file = codecs.open(ref, 'r', encoding='latin1')
+    if ".txt" in ref:
+        # reference_file = codecs.open(ref, 'r', 'utf-8')
+        reference_file = codecs.open(ref, "r", encoding="latin1")
         references.append(reference_file.readlines())
     else:
         for root, dirs, files in os.walk(ref):
             for f in files:
-                #reference_file = codecs.open(os.path.join(root, f), 'r', 'utf-8')
+                # reference_file = codecs.open(os.path.join(root, f), 'r', 'utf-8')
                 references.append(reference_file.readlines())
-    #candidate_file = codecs.open(cand, 'r', 'utf-8')
-    candidate_file = codecs.open(cand, 'r', encoding='latin1')
+    # candidate_file = codecs.open(cand, 'r', 'utf-8')
+    candidate_file = codecs.open(cand, "r", encoding="latin1")
     candidate = candidate_file.readlines()
     return candidate, references
 
@@ -42,7 +41,7 @@ def count_ngram(candidate, references, n):
             limits = len(words) - n + 1
             # loop through the sentance consider the ngram length
             for i in range(limits):
-                ngram = ' '.join(words[i:i+n]).lower()
+                ngram = " ".join(words[i : i + n]).lower()
                 if ngram in ngram_d.keys():
                     ngram_d[ngram] += 1
                 else:
@@ -54,7 +53,7 @@ def count_ngram(candidate, references, n):
         words = cand_sentence.strip().split()
         limits = len(words) - n + 1
         for i in range(0, limits):
-            ngram = ' '.join(words[i:i + n]).lower()
+            ngram = " ".join(words[i : i + n]).lower()
             if ngram in cand_dict:
                 cand_dict[ngram] += 1
             else:
@@ -87,11 +86,11 @@ def clip_count(cand_d, ref_ds):
 
 def best_length_match(ref_l, cand_l):
     """Find the closest length of reference to that of candidate"""
-    least_diff = abs(cand_l-ref_l[0])
+    least_diff = abs(cand_l - ref_l[0])
     best = ref_l[0]
     for ref in ref_l:
-        if abs(cand_l-ref) < least_diff:
-            least_diff = abs(cand_l-ref)
+        if abs(cand_l - ref) < least_diff:
+            least_diff = abs(cand_l - ref)
             best = ref
     return best
 
@@ -100,7 +99,7 @@ def brevity_penalty(c, r):
     if c > r:
         bp = 1
     else:
-        bp = math.exp(1-(float(r)/c))
+        bp = math.exp(1 - (float(r) / c))
     return bp
 
 
@@ -111,16 +110,18 @@ def geometric_mean(precisions):
 def BLEU(candidate, references):
     precisions = []
     for i in range(1):
-        pr, bp = count_ngram(candidate, references, i+1)
+        pr, bp = count_ngram(candidate, references, i + 1)
         precisions.append(pr)
     bleu = geometric_mean(precisions) * bp
     return bleu
 
 
-#candidate, references = fetch_data(sys.argv[1], sys.argv[2])
-candidate, references = fetch_data('2111.13654_generatedAbstract.txt','2111.13654_originalAbstract.txt')
+# candidate, references = fetch_data(sys.argv[1], sys.argv[2])
+candidate, references = fetch_data(
+    "2111.13654_generatedAbstract.txt", "2111.13654_originalAbstract.txt"
+)
 bleu = BLEU(candidate, references)
 print(bleu)
-out = open('bleu_out.txt', 'w')
+out = open("bleu_out.txt", "w")
 out.write(str(bleu))
 out.close()
